@@ -50,6 +50,38 @@ try:
     grouped_by_region = df_sellrequest.groupby(by='state')
     print(grouped_by_region.agg(["sum"]))
 
+    """
+    Задание:
+    Показать пользователей у которых были заявки или
+    покупки и продемонстрировать максимальную цену
+    заявки которую они подавали и минимальную цену
+    покупки, которую они совершали.
+    """
+
+    query_auto = """
+            (select user.name, user.surname,
+            sellrequest.Price as "Buy price",
+            null as "Sell price"
+            from
+            user
+            left join cart on
+            user.id = cart.UserId
+            left join sellrequest on
+            sellrequest.id = cart.RequestId)
+            union
+            (select user.Name, user.Surname,
+            null as "Buy price",
+            sellrequest.Price as "Sell price"
+            from
+            user
+            left join sellrequest on
+            user.id = sellrequest.UserId)
+        """
+
+    df_sellrequest_2 = pd.read_sql(query_auto, auto).dropna(thresh=3)
+    print(df_sellrequest_2)
+    print(f"Минимальная цена покупки - {df_sellrequest_2['Buy price'].min()}")
+    print(f"Максимальная цена заявки - {df_sellrequest_2['Sell price'].max()}")
     auto.close()
 except Exception as e:
     if mydb:
